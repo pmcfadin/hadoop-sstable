@@ -15,13 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.fullcontact.cassandra.io.sstable;
+package org.apache.cassandra.io.sstable;
 
 import java.io.*;
 import java.util.Iterator;
 
-import org.apache.cassandra.io.sstable.CorruptSSTableException;
-import org.apache.cassandra.io.sstable.SSTableReader;
 import org.apache.cassandra.serializers.MarshalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +42,8 @@ public class SSTableIdentityIterator implements Comparable<SSTableIdentityIterat
     private final int columnCount;
 
     private final Iterator<OnDiskAtom> atomIterator;
-    private final org.apache.cassandra.io.sstable.Descriptor.Version dataVersion;
+    private final Descriptor.Version dataVersion;
+
     // Used by lazilyCompactedRow, so that we see the same things when deserializing the first and second time
     private final int expireBefore;
 
@@ -79,7 +78,7 @@ public class SSTableIdentityIterator implements Comparable<SSTableIdentityIterat
 
     // sstable may be null *if* checkData is false
     // If it is null, we assume the data is in the current file format
-    public SSTableIdentityIterator(CFMetaData metadata,
+    private SSTableIdentityIterator(CFMetaData metadata,
                                     DataInput in,
                                     String filename,
                                     DecoratedKey key,
@@ -96,7 +95,7 @@ public class SSTableIdentityIterator implements Comparable<SSTableIdentityIterat
         this.expireBefore = (int)(System.currentTimeMillis() / 1000);
         this.flag = flag;
         this.validateColumns = checkData;
-        this.dataVersion = sstable == null ? org.apache.cassandra.io.sstable.Descriptor.Version.CURRENT : sstable.descriptor.version;
+        this.dataVersion = sstable == null ? Descriptor.Version.CURRENT : sstable.descriptor.version;
 
         try
         {
