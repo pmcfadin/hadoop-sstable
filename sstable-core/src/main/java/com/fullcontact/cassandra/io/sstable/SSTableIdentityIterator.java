@@ -15,11 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.cassandra.io.sstable;
+package com.fullcontact.cassandra.io.sstable;
 
 import java.io.*;
 import java.util.Iterator;
 
+import com.fullcontact.cassandra.io.util.RandomAccessReader;
+import org.apache.cassandra.io.sstable.CorruptSSTableException;
+import org.apache.cassandra.io.sstable.SSTableReader;
 import org.apache.cassandra.serializers.MarshalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.apache.cassandra.config.CFMetaData;
 import org.apache.cassandra.db.*;
 import org.apache.cassandra.db.columniterator.OnDiskAtomIterator;
-import org.apache.cassandra.io.util.RandomAccessReader;
 
 public class SSTableIdentityIterator implements Comparable<SSTableIdentityIterator>, OnDiskAtomIterator
 {
@@ -42,7 +44,7 @@ public class SSTableIdentityIterator implements Comparable<SSTableIdentityIterat
     private final int columnCount;
 
     private final Iterator<OnDiskAtom> atomIterator;
-    private final Descriptor.Version dataVersion;
+    private final org.apache.cassandra.io.sstable.Descriptor.Version dataVersion;
 
     // Used by lazilyCompactedRow, so that we see the same things when deserializing the first and second time
     private final int expireBefore;
@@ -95,7 +97,7 @@ public class SSTableIdentityIterator implements Comparable<SSTableIdentityIterat
         this.expireBefore = (int)(System.currentTimeMillis() / 1000);
         this.flag = flag;
         this.validateColumns = checkData;
-        this.dataVersion = sstable == null ? Descriptor.Version.CURRENT : sstable.descriptor.version;
+        this.dataVersion = sstable == null ? org.apache.cassandra.io.sstable.Descriptor.Version.CURRENT : sstable.descriptor.version;
 
         try
         {

@@ -26,6 +26,7 @@ import org.apache.cassandra.db.ColumnFamilyType;
 import org.apache.cassandra.dht.AbstractPartitioner;
 import org.apache.cassandra.dht.RandomPartitioner;
 import org.apache.cassandra.exceptions.RequestValidationException;
+import org.apache.cassandra.io.sstable.Descriptor;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -50,6 +51,7 @@ public abstract class SSTableRecordReader<K, V> extends RecordReader<K, V> {
     private V value;
 
     private CFMetaData cfMetaData;
+    protected Descriptor desc;
 
     @Override
     public void initialize(InputSplit inputSplit, TaskAttemptContext context) throws IOException, InterruptedException {
@@ -67,6 +69,7 @@ public abstract class SSTableRecordReader<K, V> extends RecordReader<K, V> {
         this.reader.seek(split.getStart());
 
         this.cfMetaData = initializeCfMetaData(context);
+        this.desc = Descriptor.fromFilename(split.getPath().toString());
     }
 
     @Override

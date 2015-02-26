@@ -16,10 +16,10 @@
 
 package com.fullcontact.sstable.hadoop.mapreduce;
 
+import com.fullcontact.cassandra.io.sstable.SSTableIdentityIterator;
 import org.apache.cassandra.config.CFMetaData;
-import org.apache.cassandra.db.ColumnSerializer;
 import org.apache.cassandra.db.DecoratedKey;
-import org.apache.cassandra.io.sstable.SSTableIdentityIterator;
+import org.apache.cassandra.io.sstable.SSTableReader;
 import org.apache.cassandra.utils.ByteBufferUtil;
 
 import java.io.IOException;
@@ -54,15 +54,28 @@ public class SSTableRowRecordReader extends SSTableRecordReader<ByteBuffer, SSTa
         return true;
     }
 
-    private SSTableIdentityIterator getIdentityIterator(final ByteBuffer keyBytes, final long dataSize) {
+    private SSTableIdentityIterator getIdentityIterator(final ByteBuffer keyBytes, final long dataSize) throws IOException {
         final DecoratedKey decoratedKey = getDecoratedKey(keyBytes);
         final CFMetaData cfMetaData = getCfMetaData();
 
-        return new SSTableIdentityIterator(cfMetaData, getReader(), getDataPath().toString(), decoratedKey,
-                getReader().getFilePointer(), dataSize, ColumnSerializer.Flag.LOCAL);
+        final SSTableReader ssTable = SSTableReader.open(desc);
+
+        // we're changing which SSTableIdentityIterator c'tor we use, assert that this doesn't
+        // change semantics:
+        assertEqual(getDataPath().toString(), getReader().getPath());
+        assertEqual(cfMetaData, ssTable.metadata);
+
+        final boolean checkData = true;
+        return new SSTableIdentityIterator(ssTable, getReader(), decoratedKey, dataSize, checkData);
     }
 
     private DecoratedKey getDecoratedKey(final ByteBuffer keyBytes) {
         return getPartitioner().decorateKey(keyBytes);
+    }
+
+    // TODO: remove this temp debugging method
+    private static <T> void assertEqual(T a, T b) {
+        if (!a.equals(b))
+            throw new AssertionError(String.format("Expected equal paths, but got: '%s', '%s", a, b));
     }
 }
