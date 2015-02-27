@@ -57,12 +57,12 @@ public class SSTableRowRecordReader extends SSTableRecordReader<ByteBuffer, SSTa
     private SSTableIdentityIterator getIdentityIterator(final ByteBuffer keyBytes, final long dataSize) throws IOException {
         final DecoratedKey decoratedKey = getDecoratedKey(keyBytes);
         final CFMetaData cfMetaData = getCfMetaData();
-
-        final SSTableReader ssTable = SSTableReader.open(desc, cfMetaData);
-
+        
         // we're changing which SSTableIdentityIterator c'tor we use, assert that this doesn't
         // change semantics:
         assertEqual(getDataPath().toString(), getReader().getPath());
+
+        final SSTableReader ssTable = SSTableReader.open(desc, cfMetaData);
 
         final boolean checkData = true;
         return new SSTableIdentityIterator(ssTable, getReader(), decoratedKey, dataSize, checkData);
